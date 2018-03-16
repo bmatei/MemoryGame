@@ -1,0 +1,84 @@
+For the construction of this small software application I used
+four public classes. 
+The main class (the one who's public static
+void main(String[] args) method is called first by the JVM) is
+called ClientGUI. 
+		ClientGUI:
+	In this main method I set the Nimbus look and feel
+for our User Interface (for improved graphics, it is however optional)
+and then start up a new thread and in that thread create a new instance
+of ClientGUI class, which basicaly is our main frame (by extending
+the JFrame class from javax.swing). In it's constructor I initialize
+a CustomTableModel object which will handle all the email information
+coming from the server. Then I just set the title of the JFrame and
+call an "initComponents()" member function.
+	In this function all the Graphical User Interface elements are
+constructed and initialized with the values I want them to have at
+program start-up. There's a JPanel holding the whole thing together
+(container), two JScrollPanes, one will hold the table listing the
+emails, and the other will hold the text field containing the email
+content. Then we thus have a JTable to show up a list of emails and
+a JTextArea to present the email content. The last two elements are
+a JLabel who will contain the user email (top left) and a Login button
+The JTable gets it's data from a TableModel, more precisely an instance
+of the CustomTableModel I will describe in the following lines.
+There are two event listeners added to the components of this JFrame
+and more precisely, an ActionListener added to the Login button,
+and a MouseListener added to the table. When the button is clicked
+a function jButton1ActionPerformed(ActionEvent) is fired, also, when the
+table is clicked a function jTable1ActionPerformed(MouseEvent) is called.
+	jButton1ActionPerformed constructs a new object of type
+ConnectDialog and then makes it visible
+	jTable1MouseClicked function retrieves the message from the
+Table Model (considering which row of the table was clicked) and then
+uses the MimeMultipart to get every part making up the message. It
+then parses these parts and if it is plain/text it adds it to a
+string, if it's html/text it first parses it with a static method in
+the Jsoup class (library included), thus turning html into more
+readable content and then adds it to that same string, and then if
+it's nothing it constructs a descriptive error message and adds
+it to the same string as the other two possible outcomes. Then it
+puts the content of the resulted string in the JTextArea we initialized
+in "initComponents()".
+		ConnectionDialog
+	This class creates a small pop-up box for user registration. It's
+constructor is called first, when the Login in ClientGUI is pressed.
+The visual components are as follows:
+	serverTextField - text field for input-ing the server name (by the user)
+	usernameTextField - text field for user name input by the user
+	passwordField - password field used for password input
+	portTextField - text field for port input by the user
+	serverDropBox - a drop down containing all previouse server logs
+	usernameDropBox - a drop down containing all user name
+	parent - this is the ClientGUI instance tho called this, and it's
+placed for convenience.
+	The class also handles loading and saving of login data in some files
+	This class handles the actual connection in the function: connectToServer
+	In this function, the first thing is instantiate and initiate is a
+Properties object, which will hold all the properties for our connection
+Here we will include some ssl options to make sure it works and then
+Makes a Session with given properties, then makes a Store from given
+Session, then make the according file to hold data from the server. I then
+make a Folder object out of the Store object, and that Folder data is
+used to populate the jTable on ClientGUI. If there has been no error
+and we need our table to contain emails then the object writes the login
+information (unencrypted password!!) to some files by calling the static
+functions in Credentials. Besides handling it's own closing there
+is nothing more to this.
+		CustomTableModel
+	It encapsulates a final String of collumn names. An array list (who will
+hold our emails). Because it extends AbstractTableModel it needs to
+override a couple of functions, and they're pretty much getters and setters
+for the two variables. The function setMessages also updates the table
+to show what it has got by calling it. The rest are a breeze.
+		Credentials
+	This class has 3 vector variables (for convenience, everything is static here)
+Each one of them will hold strings containing either server names, user names or
+passwords (username and password vector are linked by the logics of the program. By
+linked I mean that on the same index we can identify the correct username--login
+information).
+	The function saveInfo, just takes all the content of these vectors, and saves
+them in two separate files (servers + username/pass).
+	The function load, loads the entire content of these files, into memory
+	There are getters for each vector (called loadServers, loadUsers and
+loadPasswords).
